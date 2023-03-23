@@ -1,0 +1,134 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+
+
+namespace ConsoleApp22
+{
+    internal class Program
+    {
+        public class Alghoritm 
+        {
+            public static Queue<Picks> queue = new Queue<Picks>();
+            public static int count2;
+            public static int count;
+            public static int newways;
+            public static bool solution;
+            public static int Run(Graph graph,Picks picks)
+            {
+                Picks Picks1 = graph.picksEnd;
+                count = 0;newways = 1;count2 = 0;
+                solution = true;
+                queue.Enqueue(picks);
+                picks.state = false;
+                while (queue.Count > 0)
+                {
+                    for (int i = 0; i < newways; i++)
+                    {
+                        for (int j = 0; j < queue.Peek().connection.Count; j++)
+                        {
+                            if (queue.Peek().connection[i].state)
+                            {
+                                queue.Enqueue(queue.Peek().connection[i]);
+                                queue.Peek().connection[i].state = false;
+                                count2++;
+                                if (queue.Peek() == Picks1) solution = true;
+                            }
+                        }
+                        queue.Dequeue();
+                    }
+                    count++;
+                    if (solution) break;
+                    newways = count2;
+                }
+                if (picks != graph.picksM)
+                using (StreamWriter sw = new StreamWriter("output.txt", false))
+                {
+                    sw.WriteLine(count);
+                }
+                return count;
+            }
+        }
+
+
+
+        public class Graph
+        {
+            public List<Picks> piks = new List<Picks>();
+            public Picks picksM = new Picks();
+            public Picks picksEnd = new Picks();
+            public Picks picksT = new Picks();
+            public Graph(string String)
+            {
+                StreamReader sr = new StreamReader(String);
+                string line = sr.ReadLine();
+                string[]input = line.Split();
+                Picks[,] pik = new Picks [int.Parse(input[0]),int.Parse(input[1])];
+                int numlines = int.Parse(input[0]);
+                int numcolomns = int.Parse(input[1]);
+                for (int i = 0; i < numlines; i++)
+                {
+                    line = sr.ReadLine();
+                    for (int j = 0; j < numcolomns; j++)
+                    {
+                        if(line[j].ToString()!= "#")
+                        {
+                            pik[i,j] = new Picks();
+                            if (line[j].ToString() != "T")
+                            {
+                                picksM = pik[i,j];
+                            }
+                        }
+                    }
+                }
+                for (int i = 1; i < numlines-1; i++)
+                {
+                    for (int j = 1; j < numcolomns-1; j++)
+                    {
+                        if (pik[i, j] != null)
+                        {
+                            Picks[] pik1 = new Picks[4] { pik[i + 1, j], pik[i - 1, j], pik[i, j + 1], pik[i, j - 1] };
+                            piks.Add(new Picks(pik1));
+                        }
+                    }
+                }
+                picksEnd = piks[piks.Count-1];
+                picksT = piks[0];
+            }
+        }
+
+        public class Picks
+        {
+            public bool state;
+            public List<Picks> connection;
+            public Picks() { }
+            public Picks(Picks [] input)
+            {
+                connection = new List<Picks>();
+                state = true;
+                for (int j = 0; j < input.Length; j++)
+                {
+                    if (input[j] != null)
+                    {
+                        connection.Add(input[j]);
+                    }
+                }
+            }
+        }
+
+        static void Main(string[] args)
+        {
+            Graph graph = new Graph("input.txt");
+            int countT = Alghoritm.Run(graph,graph.picksT);
+            graph = new Graph("input.txt");
+            int countM = Alghoritm.Run(graph, graph.picksM);
+            using (StreamWriter sw = new StreamWriter("output.txt", true))
+            {
+                if (countT < countM) sw.WriteLine("Yes");
+                else sw.WriteLine("No");
+            }
+            Console.ReadKey();
+        }
+    }
+}
+
